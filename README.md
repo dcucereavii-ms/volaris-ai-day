@@ -133,6 +133,7 @@ az ml schedule create -f aml/jobs/retrain-schedule.yaml
 
 | Doc | Purpose |
 |---|---|
+| [docs/poc-runbook.md](docs/poc-runbook.md) | **Start here** — 2-hour end-to-end POC with synthetic data |
 | [docs/architecture.md](docs/architecture.md) | Component diagram, networking, identities |
 | [docs/design.md](docs/design.md) | Data model, feature catalog, model design |
 | [docs/data-flow.md](docs/data-flow.md) | Bronze/Silver/Gold lineage and schemas |
