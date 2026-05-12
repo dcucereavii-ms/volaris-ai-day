@@ -1,0 +1,14 @@
+$schema: https://azuremlschemas.azureedge.net/latest/schedule.schema.json
+name: monthly-retrain
+display_name: Monthly retrain pipeline
+trigger:
+  type: recurrence
+  frequency: month
+  interval: 1
+  schedule:
+    hours: [3]
+    minutes: [0]
+    week_days: [Monday]   # first Monday execution per the recurrence
+  time_zone: UTC
+
+create_job: ./retrain-pipeline.yaml

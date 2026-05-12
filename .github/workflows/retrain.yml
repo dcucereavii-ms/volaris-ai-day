@@ -1,0 +1,33 @@
+name: scheduled-retrain
+
+on:
+  schedule:
+    - cron: "0 3 1 * *"   # 03:00 UTC on the 1st of every month
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    env:
+      WORKSPACE: aml-valuation-prod
+      RESOURCE_GROUP: rg-valuation
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Install ML extension
+        run: az extension add -n ml -y
+      - name: Submit retrain pipeline
+        run: |
+          az ml job create \
+            -f aml/jobs/retrain-pipeline.yaml \
+            --workspace-name $WORKSPACE \
+            --resource-group $RESOURCE_GROUP \
+            --set inputs.snapshot_date=$(date -u +%Y-%m-%d)

@@ -1,0 +1,59 @@
+{
+  "name": "copy-onprem-to-onelake",
+  "description": "Copy anonymized parquet from on-prem file share via Self-hosted IR into the Fabric Lakehouse Files section.",
+  "properties": {
+    "activities": [
+      {
+        "name": "CopyAnonymized",
+        "type": "Copy",
+        "typeProperties": {
+          "source": {
+            "type": "ParquetSource",
+            "storeSettings": {
+              "type": "FileServerReadSettings",
+              "recursive": true,
+              "wildcardFolderPath": "anonymized",
+              "wildcardFileName": "*.parquet"
+            }
+          },
+          "sink": {
+            "type": "ParquetSink",
+            "storeSettings": {
+              "type": "LakehouseWriteSettings",
+              "copyBehavior": "PreserveHierarchy"
+            }
+          },
+          "enableStaging": false,
+          "validateDataConsistency": true,
+          "logSettings": {
+            "enableCopyActivityLog": true
+          }
+        },
+        "inputs": [
+          {
+            "referenceName": "OnPremFileShare_Anonymized",
+            "type": "DatasetReference"
+          }
+        ],
+        "outputs": [
+          {
+            "referenceName": "Lakehouse_Files_Anonymized",
+            "type": "DatasetReference"
+          }
+        ]
+      },
+      {
+        "name": "RunBronzeNotebook",
+        "type": "TridentNotebook",
+        "dependsOn": [
+          { "activity": "CopyAnonymized", "dependencyConditions": ["Succeeded"] }
+        ],
+        "typeProperties": {
+          "notebookId": "<NOTEBOOK_ID_FOR_01_bronze_load>",
+          "workspaceId": "<FABRIC_WORKSPACE_ID>"
+        }
+      }
+    ],
+    "concurrency": 1
+  }
+}

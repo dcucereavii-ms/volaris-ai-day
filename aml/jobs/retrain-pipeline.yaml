@@ -1,0 +1,70 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+display_name: monthly_retrain_pipeline
+experiment_name: valuation_retrain
+description: Refresh data, train challenger, evaluate vs champion on fixed holdout, conditionally register.
+
+settings:
+  default_compute: azureml:cpu-cluster-ds3
+
+inputs:
+  snapshot_date: "2026-06-01"
+  champion_model_uri: azureml:valuation_prod@latest
+
+jobs:
+
+  refresh_data:
+    type: command
+    code: ../src
+    environment: azureml://registries/azureml/environments/sklearn-1.5/labels/latest
+    command: >-
+      python refresh_gold_features.py --snapshot ${{inputs.snapshot}}
+    inputs:
+      snapshot: ${{parent.inputs.snapshot_date}}
+    outputs:
+      gold:
+        type: uri_folder
+
+  train_challenger:
+    type: command
+    code: ../src
+    environment: azureml://registries/azureml/environments/sklearn-1.5/labels/latest
+    command: >-
+      python train_lgbm.py --data ${{inputs.data}}
+      --target sale_price
+      --output ${{outputs.model}}
+    inputs:
+      data: ${{parent.jobs.refresh_data.outputs.gold}}
+    outputs:
+      model:
+        type: mlflow_model
+
+  evaluate:
+    type: command
+    code: ../src
+    environment: azureml://registries/azureml/environments/sklearn-1.5/labels/latest
+    command: >-
+      python evaluate.py
+      --challenger ${{inputs.challenger}}
+      --champion-uri ${{inputs.champion}}
+      --holdout azureml:gold_features_holdout@latest
+      --report ${{outputs.report}}
+    inputs:
+      challenger: ${{parent.jobs.train_challenger.outputs.model}}
+      champion:   ${{parent.inputs.champion_model_uri}}
+    outputs:
+      report:
+        type: uri_folder
+
+  conditional_register:
+    type: command
+    code: ../src
+    environment: azureml://registries/azureml/environments/sklearn-1.5/labels/latest
+    command: >-
+      python conditional_register.py
+      --report ${{inputs.report}}
+      --model  ${{inputs.model}}
+      --register-name valuation_prod
+    inputs:
+      report: ${{parent.jobs.evaluate.outputs.report}}
+      model:  ${{parent.jobs.train_challenger.outputs.model}}

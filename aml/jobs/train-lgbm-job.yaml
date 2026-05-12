@@ -1,0 +1,25 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+type: command
+display_name: train_lgbm_challenger
+experiment_name: valuation_lgbm
+compute: azureml:cpu-cluster-ds3
+environment: azureml://registries/azureml/environments/sklearn-1.5/labels/latest
+
+code: ../src
+
+command: >-
+  python train_lgbm.py
+  --data ${{inputs.data}}
+  --target sale_price
+  --register-name valuation_lgbm
+
+inputs:
+  data:
+    type: uri_folder
+    path: azureml:gold_features:2026.05.12
+    mode: ro_mount
+
+outputs:
+  model:
+    type: mlflow_model
+    mode: rw_mount

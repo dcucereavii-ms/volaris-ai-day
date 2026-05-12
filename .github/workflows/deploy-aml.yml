@@ -1,0 +1,41 @@
+name: deploy-aml
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment:
+        description: "blue or green"
+        required: true
+        default: "green"
+      model_version:
+        description: "Model version to deploy"
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      WORKSPACE: aml-valuation-prod
+      RESOURCE_GROUP: rg-valuation
+      ENDPOINT: valuation-endpoint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Azure login (workload identity)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Install ML extension
+        run: az extension add -n ml -y
+      - name: Deploy
+        run: |
+          az ml online-deployment create \
+            -f aml/endpoints/deployment-${{ inputs.deployment }}.yaml \
+            --workspace-name $WORKSPACE \
+            --resource-group $RESOURCE_GROUP \
+            --set model=azureml:valuation_prod:${{ inputs.model_version }}

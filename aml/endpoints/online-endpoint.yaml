@@ -1,0 +1,4 @@
+$schema: https://azuremlschemas.azureedge.net/latest/managedOnlineEndpoint.schema.json
+name: valuation-endpoint
+description: Property valuation real-time endpoint with blue/green deployments.
+auth_mode: aad_token

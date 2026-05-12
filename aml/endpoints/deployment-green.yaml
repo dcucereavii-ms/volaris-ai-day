@@ -1,0 +1,16 @@
+$schema: https://azuremlschemas.azureedge.net/latest/managedOnlineDeployment.schema.json
+name: green
+endpoint_name: valuation-endpoint
+model: azureml:valuation_prod@latest      # override at deploy time with new version
+instance_type: Standard_DS3_v2
+instance_count: 2
+request_settings:
+  request_timeout_ms: 5000
+  max_concurrent_requests_per_instance: 4
+data_collector:
+  collections:
+    model_inputs:
+      enabled: true
+    model_outputs:
+      enabled: true
+  rolling_rate: Hour

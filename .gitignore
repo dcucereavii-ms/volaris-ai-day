@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Data — never commit
+*.parquet
+*.csv
+*.tsv
+*.xlsx
+staging/
+data/
+*.h5
+*.pkl
+*.joblib
+
+# Secrets
+*.pem
+*.key
+*.salt
+secrets/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Azure ML
+mlruns/
+outputs/
+azureml-logs/
+.azureml/
+
+# Notebooks checkpoints
+.ipynb_checkpoints/

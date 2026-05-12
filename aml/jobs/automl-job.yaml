@@ -1,0 +1,42 @@
+$schema: https://azuremlsdk2.blob.core.windows.net/preview/0.0.1/autoMLJob.schema.json
+type: automl
+experiment_name: valuation_automl
+display_name: valuation_automl_baseline
+compute: azureml:cpu-cluster-ds3
+task: regression
+primary_metric: normalized_root_mean_squared_error
+target_column_name: sale_price
+
+training_data:
+  type: mltable
+  path: azureml:gold_features:2026.05.12
+
+test_data:
+  type: mltable
+  path: azureml:gold_features_holdout:2026.05.12
+
+limits:
+  timeout_minutes: 240
+  trial_timeout_minutes: 30
+  max_trials: 50
+  max_concurrent_trials: 4
+  enable_early_termination: true
+
+training:
+  blocked_training_algorithms:
+    - TensorFlowDNN
+    - TensorFlowLinearRegressor
+  enable_model_explainability: true
+  enable_stack_ensemble: true
+  enable_vote_ensemble: true
+
+featurization:
+  mode: custom
+  column_name_and_types:
+    postcode_prefix: Categorical
+    geo_h3_r8: Categorical
+    property_type: Categorical
+    size_band: Categorical
+    sale_month: DateTime
+
+n_cross_validations: 5
